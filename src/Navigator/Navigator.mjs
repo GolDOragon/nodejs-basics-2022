@@ -47,8 +47,7 @@ export class Navigator {
    */
   async ls() {
     const files = await fs.readdir(this.#workingDirectory);
-    files.forEach(this.#logger.showMessage);
-
+    this.#logger.showMessage(...files);
     this.#showWorkingDirectory();
   }
 
