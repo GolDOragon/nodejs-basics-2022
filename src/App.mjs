@@ -1,15 +1,18 @@
+import os from 'os';
 import { Navigator } from './Navigator/Navigator.mjs';
 import { AppError } from './AppError.mjs';
 import { Parser } from './Parser/Parser.mjs';
 import {
   CHANGE_DIRECTORY_OPERATION,
   EXIT_OPERATION,
+  HASH_CALCULATION_OPERATION,
   LIST_OPERATION,
   SYSTEM_INFO_OPERATION,
   UP_OPERATION,
 } from './Parser/AvailableOperations.mjs';
 import { AppLogger } from './AppLogger.mjs';
 import { OSInspector } from './OSInspector/OSInspector.mjs';
+import { HashWorker } from './HashWorker/HashWorker.mjs';
 
 export class App {
   #username;
@@ -17,8 +20,9 @@ export class App {
   constructor() {
     this.#username = Parser.getUsername();
     this.logger = new AppLogger(this.#username);
-    this.navigator = new Navigator();
+    this.navigator = new Navigator(os.homedir());
     this.OSInspector = new OSInspector();
+    this.hashWorker = new HashWorker(os.homedir(), 'sha256');
   }
 
   run() {
@@ -53,6 +57,10 @@ export class App {
           await this.OSInspector.showInfo(...options);
           break;
 
+        case HASH_CALCULATION_OPERATION:
+          await this.hashWorker.calculateHash(...options);
+          break;
+
         case EXIT_OPERATION:
           process.exit();
           break;
@@ -60,7 +68,7 @@ export class App {
         default:
           // TODO: remove
           Object.keys(_colors).forEach((key) => {
-            console['log' + key]('key: ', key);
+            console[`log${key}`]('key: ', key);
           });
       }
     } catch (err) {
@@ -113,7 +121,7 @@ const _colors = {
 
 const enableColorLogging = function () {
   Object.keys(_colors).forEach((key) => {
-    console['log' + key] = function () {
+    console[`log${key}`] = function () {
       return console.log(_colors[key], ...arguments, _colors.Reset);
     };
   });
