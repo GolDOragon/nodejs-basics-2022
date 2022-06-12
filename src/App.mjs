@@ -4,6 +4,8 @@ import { AppError } from './AppError.mjs';
 import { Parser } from './Parser/Parser.mjs';
 import {
   CHANGE_DIRECTORY_OPERATION,
+  COMPRESS_OPERATION,
+  DECOMPRESS_OPERATION,
   EXIT_OPERATION,
   HASH_CALCULATION_OPERATION,
   LIST_OPERATION,
@@ -13,6 +15,7 @@ import {
 import { AppLogger } from './AppLogger.mjs';
 import { OSInspector } from './OSInspector/OSInspector.mjs';
 import { HashWorker } from './HashWorker/HashWorker.mjs';
+import { ZipWorker } from './ZipWorker/ZipWorker.mjs';
 
 export class App {
   #username;
@@ -23,6 +26,7 @@ export class App {
     this.navigator = new Navigator(os.homedir());
     this.OSInspector = new OSInspector();
     this.hashWorker = new HashWorker(os.homedir(), 'sha256');
+    this.zipWorker = new ZipWorker(os.homedir());
   }
 
   run() {
@@ -61,6 +65,13 @@ export class App {
           await this.hashWorker.calculateHash(...options);
           break;
 
+        case COMPRESS_OPERATION:
+          await this.zipWorker.compress(...options);
+          break;
+        case DECOMPRESS_OPERATION:
+          await this.zipWorker.decompress(...options);
+          break;
+
         case EXIT_OPERATION:
           process.exit();
           break;
@@ -72,8 +83,11 @@ export class App {
           });
       }
     } catch (err) {
+      console.log(err);
       if (err instanceof AppError) {
         this.logger.showError(`Operation failed [${err.code}]: ${err.message}`);
+      } else {
+        this.logger.showError(`Unknown error: ${err.message}`);
       }
     }
   }
