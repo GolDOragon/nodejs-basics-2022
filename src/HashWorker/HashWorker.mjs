@@ -18,8 +18,8 @@ export class HashWorker {
   }
 
   async calculateHash(pathToFile) {
-    await this.#pathWorker.isValidFile(pathToFile);
-    const absolutePath = await this.#pathWorker.getPath(pathToFile);
+    const absolutePath = this.#pathWorker.getPath(pathToFile);
+    await this.#pathWorker.isValidFile(absolutePath);
 
     const fileData = fs.createReadStream(absolutePath);
 

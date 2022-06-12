@@ -16,12 +16,51 @@ export class PathWorker {
     this.#homeDirectory = homeDirectory;
   }
 
-  async getPath(pathTo) {
-    await this.isValidPath(pathTo);
+  get workingDirectory() {
+    return this.#workingDirectory;
+  }
+
+  set workingDirectory(pathToDirectory) {
+    this.#isPathInsideHomeDir(pathToDirectory);
+    this.#workingDirectory = pathToDirectory;
+  }
+
+  getPath(pathTo) {
+    this.#isPathInsideHomeDir(pathTo);
     return this.#getAbsolutePath(pathTo);
   }
 
-  async isValidPath(pathTo) {
+  async isValidFile(pathTo) {
+    const filePath = this.#getAbsolutePath(pathTo);
+    this.#isPathInsideHomeDir(filePath);
+    await this.#isPathExist(filePath);
+
+    const status = await fs.lstat(filePath);
+    if (!status.isFile()) {
+      throw new PathWorkerError(
+        PATH_ERROR_CODES.NON_EXIST_FILE,
+        PATH_ERROR_MESSAGES.NON_EXIST_FILE,
+      );
+    }
+    return true;
+  }
+
+  async isValidDirectory(pathTo) {
+    const directoryPath = this.#getAbsolutePath(pathTo);
+    this.#isPathInsideHomeDir(directoryPath);
+    await this.#isPathExist(directoryPath);
+
+    const status = await fs.lstat(directoryPath);
+    if (!status.isDirectory()) {
+      throw new PathWorkerError(
+        PATH_ERROR_CODES.NON_EXIST_DIRECTORY,
+        PATH_ERROR_MESSAGES.NON_EXIST_DIRECTORY,
+      );
+    }
+    return true;
+  }
+
+  #isPathInsideHomeDir(pathTo) {
     const newPath = this.#getAbsolutePath(pathTo);
 
     if (!newPath.startsWith(this.#homeDirectory)) {
@@ -30,6 +69,16 @@ export class PathWorker {
         PATH_ERROR_MESSAGES.PATH_OUTSIDE_HOME_DIRECTORY,
       );
     }
+
+    return true;
+  }
+
+  #getAbsolutePath(pathTo) {
+    return path.isAbsolute(pathTo) ? pathTo : path.resolve(this.#workingDirectory, pathTo);
+  }
+
+  #isPathExist(pathTo) {
+    const newPath = this.#getAbsolutePath(pathTo);
 
     return fs
       .access(newPath)
@@ -40,45 +89,5 @@ export class PathWorker {
           PATH_ERROR_MESSAGES.NON_EXIST_PATH,
         );
       });
-  }
-
-  async isValidFile(pathToFile) {
-    const absolutePath = await this.getPath(pathToFile);
-    const status = await fs.lstat(absolutePath);
-
-    if (!status.isFile()) {
-      throw new PathWorkerError(
-        PATH_ERROR_CODES.NON_EXIST_FILE,
-        PATH_ERROR_MESSAGES.NON_EXIST_FILE,
-      );
-    }
-    return true;
-  }
-
-  async isValidDirectory(pathToDirectory) {
-    const absolutePath = await this.getPath(pathToDirectory);
-    const status = await fs.lstat(absolutePath);
-
-    if (!status.isDirectory()) {
-      throw new PathWorkerError(
-        PATH_ERROR_CODES.NON_EXIST_DIRECTORY,
-        PATH_ERROR_MESSAGES.NON_EXIST_DIRECTORY,
-      );
-    }
-    return true;
-  }
-
-  #getAbsolutePath(pathToDirectory) {
-    return path.isAbsolute(pathToDirectory)
-      ? path.resolve(pathToDirectory)
-      : path.resolve(this.#workingDirectory, pathToDirectory);
-  }
-
-  get workingDirectory() {
-    return this.#workingDirectory;
-  }
-
-  set workingDirectory(pathToDirectory) {
-    this.#workingDirectory = pathToDirectory;
   }
 }

@@ -17,13 +17,13 @@ export class Navigator extends PathWorker {
    */
   async up() {
     try {
-      this.workingDirectory = await this.getPath('..');
+      this.workingDirectory = this.getPath('..');
     } catch (err) {
-      if (!(err instanceof PathWorkerError)) {
+      if (err instanceof PathWorkerError) {
+        this.#logger.showMessage('You already on the top!');
+      } else {
         throw err;
       }
-
-      this.#logger.showMessage('You already on the top!');
     }
 
     this.#showWorkingDirectory();
