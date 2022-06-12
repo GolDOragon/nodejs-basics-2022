@@ -1,4 +1,4 @@
-import { Logger } from './Logger.mjs';
+import { Logger } from './utils/Logger.mjs';
 
 export class AppLogger extends Logger {
   #name;

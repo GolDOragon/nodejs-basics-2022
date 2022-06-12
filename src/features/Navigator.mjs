@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
-import { Logger } from '../Logger.mjs';
-import { PathWorkerError } from './PathWorkerError.mjs';
-import { PathWorker } from '../PathWorker.mjs';
+import { Logger } from '../utils/Logger.mjs';
+import { PathWorkerError } from '../utils/PathWorkerError.mjs';
+import { PathWorker } from '../utils/PathWorker.mjs';
 
 export class Navigator extends PathWorker {
   #logger;
@@ -25,8 +25,6 @@ export class Navigator extends PathWorker {
         throw err;
       }
     }
-
-    this.#showWorkingDirectory();
   }
 
   /**
@@ -34,8 +32,7 @@ export class Navigator extends PathWorker {
    */
   async ls() {
     const files = await fs.readdir(this.workingDirectory);
-    this.#logger.showMessage(...files);
-    this.#showWorkingDirectory();
+    this.#logger.showMessage(...files.map((file) => this.#logger.FgBlue + file));
   }
 
   /**
@@ -45,11 +42,5 @@ export class Navigator extends PathWorker {
   async cd(pathToDirectory) {
     await this.isValidDirectory(pathToDirectory);
     this.workingDirectory = await this.getPath(pathToDirectory);
-
-    this.#showWorkingDirectory();
-  }
-
-  #showWorkingDirectory() {
-    this.#logger.showMessage(`You are currently in ${this.workingDirectory}`);
   }
 }

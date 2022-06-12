@@ -1,10 +1,13 @@
+import { constants } from 'fs';
 import fs from 'fs/promises';
 import path from 'path';
-import {
-  PATH_ERROR_CODES,
-  PATH_ERROR_MESSAGES,
-  PathWorkerError,
-} from './Navigator/PathWorkerError.mjs';
+import { PATH_ERROR_CODES, PATH_ERROR_MESSAGES, PathWorkerError } from './PathWorkerError.mjs';
+
+export const FILE_EXISTS = 'FILE_EXISTS';
+export const FILE_NOT_EXIST = 'FILE_NOT_EXIST';
+
+export const DIRECTORY_EXISTS = 'DIRECTORY_EXISTS';
+export const DIRECTORY_NOT_EXISTS = 'DIRECTORY_NOT_EXISTS';
 
 export class PathWorker {
   #workingDirectory;
@@ -58,6 +61,20 @@ export class PathWorker {
       );
     }
     return true;
+  }
+
+  async getFileStatus(filePath) {
+    return this.isValidFile(filePath)
+      .then(() => FILE_EXISTS)
+      .catch(() => FILE_NOT_EXIST);
+  }
+
+  async getDirectoryStatus(directoryPath) {
+    await this.isValidDirectory(directoryPath);
+    return fs
+      .access(directoryPath, constants.W_OK)
+      .then(() => DIRECTORY_EXISTS)
+      .catch(() => DIRECTORY_NOT_EXISTS);
   }
 
   #isPathInsideHomeDir(pathTo) {

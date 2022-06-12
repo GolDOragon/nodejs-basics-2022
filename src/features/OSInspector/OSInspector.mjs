@@ -1,5 +1,5 @@
 import os from 'os';
-import { Logger } from '../Logger.mjs';
+import { Logger } from '../../utils/Logger.mjs';
 import {
   OS_INSPECTOR_ERROR_CODES,
   OS_INSPECTOR_ERROR_MESSAGES,

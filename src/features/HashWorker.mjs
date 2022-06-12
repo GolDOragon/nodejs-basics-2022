@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 import fs from 'fs';
-import { Logger } from '../Logger.mjs';
-import { PathWorker } from '../PathWorker.mjs';
+import { Logger } from '../utils/Logger.mjs';
+import { PathWorker } from '../utils/PathWorker.mjs';
 
 export class HashWorker {
   #hash;
@@ -17,8 +17,8 @@ export class HashWorker {
     this.#logger = new Logger();
   }
 
-  async calculateHash(pathToFile) {
-    const absolutePath = this.#pathWorker.getPath(pathToFile);
+  async calculateHash(workingDirectory, pathToFile) {
+    const absolutePath = this.#getAbsolutePath(workingDirectory, pathToFile);
     await this.#pathWorker.isValidFile(absolutePath);
 
     const fileData = fs.createReadStream(absolutePath);
@@ -31,5 +31,10 @@ export class HashWorker {
         this.#logger.showMessage(this.#hash.digest('hex'));
       }
     });
+  }
+
+  #getAbsolutePath(workingDirectory, pathFile) {
+    this.#pathWorker.workingDirectory = workingDirectory;
+    return this.#pathWorker.getPath(pathFile);
   }
 }

@@ -1,4 +1,4 @@
-import { AppError } from '../AppError.mjs';
+import { AppError } from '../../AppError.mjs';
 
 export class OSInspectorError extends AppError {
   /**

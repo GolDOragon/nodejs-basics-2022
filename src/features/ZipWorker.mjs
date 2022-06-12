@@ -1,8 +1,8 @@
 import { createReadStream, createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import { createGzip, createUnzip } from 'zlib';
-import { Logger } from '../Logger.mjs';
-import { PathWorker } from '../PathWorker.mjs';
+import { Logger } from '../utils/Logger.mjs';
+import { PathWorker } from '../utils/PathWorker.mjs';
 
 export class ZipWorker {
   #pathWorker;
