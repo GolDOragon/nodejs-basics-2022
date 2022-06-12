@@ -89,7 +89,6 @@ export class FileManager {
     const copyDirectory = this.#getAbsolutePath(workingDirectory, directory);
     const copyPath = `${copyDirectory}/${getFilename(originalFile)}`;
 
-    console.log(originalPath, copyDirectory, copyPath);
     const [originalFileStatus, directoryStatus, copyFileStatus] = await Promise.all([
       this.#pathWorker.getFileStatus(originalPath, constants.R_OK),
       this.#pathWorker.getDirectoryStatus(copyDirectory),

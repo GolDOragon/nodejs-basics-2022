@@ -1,6 +1,6 @@
 import { createReadStream, createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
-import { createGzip, createUnzip } from 'zlib';
+import { createBrotliCompress, createBrotliDecompress } from 'zlib';
 import { Logger } from '../utils/Logger.mjs';
 import { PathWorker } from '../utils/PathWorker.mjs';
 
@@ -17,13 +17,13 @@ export class ZipWorker {
     this.#pathWorker = new PathWorker(homedir);
     this.#logger = new Logger();
 
-    this.#zip = createGzip();
-    this.#unzip = createUnzip();
+    this.#zip = createBrotliCompress();
+    this.#unzip = createBrotliDecompress();
   }
 
-  async compress(pathToFile, pathToArchive) {
-    const filePath = this.#pathWorker.getPath(pathToFile);
-    const archivePath = `${this.#pathWorker.getPath(pathToArchive)}.gz`;
+  async compress(workingDirectory, pathToFile, pathToArchive) {
+    const filePath = this.#getAbsolutePath(workingDirectory, pathToFile);
+    const archivePath = this.#getAbsolutePath(workingDirectory, `${pathToArchive}.br`);
 
     await pipeline(createReadStream(filePath), this.#zip, createWriteStream(archivePath)).then(
       () => {
@@ -35,9 +35,9 @@ export class ZipWorker {
     );
   }
 
-  async decompress(pathToArchive, pathToFile) {
-    const archivePath = await this.#pathWorker.getPath(pathToArchive);
-    const filePath = await this.#pathWorker.getPath(pathToFile);
+  async decompress(workingDirectory, pathToArchive, pathToFile) {
+    const archivePath = this.#getAbsolutePath(workingDirectory, pathToArchive);
+    const filePath = this.#getAbsolutePath(workingDirectory, pathToFile);
 
     await pipeline(createReadStream(archivePath), this.#unzip, createWriteStream(filePath)).then(
       () => {
@@ -47,5 +47,10 @@ export class ZipWorker {
         );
       },
     );
+  }
+
+  #getAbsolutePath(workingDirectory, pathFile) {
+    this.#pathWorker.workingDirectory = workingDirectory;
+    return this.#pathWorker.getPath(pathFile);
   }
 }
