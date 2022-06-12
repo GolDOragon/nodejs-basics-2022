@@ -2,7 +2,7 @@ export const UP_OPERATION = 'UP_OPERATION';
 export const CHANGE_DIRECTORY_OPERATION = 'CHANGE_DIRECTORY_OPERATION';
 export const LIST_OPERATION = 'LIST_OPERATION';
 
-export const PRINT_OPERATION = 'cat';
+export const READ_OPERATION = 'cat';
 export const CREATE_OPERATION = 'add';
 export const RENAME_OPERATION = 'rn';
 export const COPY_OPERATION = 'cp';

@@ -5,10 +5,16 @@ import { Parser } from './Parser/Parser.mjs';
 import {
   CHANGE_DIRECTORY_OPERATION,
   COMPRESS_OPERATION,
+  COPY_OPERATION,
+  CREATE_OPERATION,
   DECOMPRESS_OPERATION,
+  DELETE_OPERATION,
   EXIT_OPERATION,
   HASH_CALCULATION_OPERATION,
   LIST_OPERATION,
+  MOVE_OPERATION,
+  READ_OPERATION,
+  RENAME_OPERATION,
   SYSTEM_INFO_OPERATION,
   UP_OPERATION,
 } from './Parser/AvailableOperations.mjs';
@@ -16,6 +22,7 @@ import { AppLogger } from './AppLogger.mjs';
 import { OSInspector } from './OSInspector/OSInspector.mjs';
 import { HashWorker } from './HashWorker/HashWorker.mjs';
 import { ZipWorker } from './ZipWorker/ZipWorker.mjs';
+import { FileOperator } from './FileOperator/FileOperator.mjs';
 
 export class App {
   #username;
@@ -24,6 +31,7 @@ export class App {
     this.#username = Parser.getUsername();
     this.logger = new AppLogger(this.#username);
     this.navigator = new Navigator(os.homedir());
+    this.fileOperator = new FileOperator(os.homedir());
     this.OSInspector = new OSInspector();
     this.hashWorker = new HashWorker(os.homedir(), 'sha256');
     this.zipWorker = new ZipWorker(os.homedir());
@@ -57,19 +65,38 @@ export class App {
           await this.navigator.cd(...options);
           break;
 
+        case READ_OPERATION:
+          await this.fileOperator.readFile(this.navigator.workingDirectory, ...options);
+          break;
+        case CREATE_OPERATION:
+          await this.fileOperator.createEmptyFile(this.navigator.workingDirectory, ...options);
+          break;
+        case RENAME_OPERATION:
+          await this.fileOperator.renameFile(this.navigator.workingDirectory, ...options);
+          break;
+        case COPY_OPERATION:
+          await this.fileOperator.copyFile(this.navigator.workingDirectory, ...options);
+          break;
+        case MOVE_OPERATION:
+          await this.fileOperator.moveFile(this.navigator.workingDirectory, ...options);
+          break;
+        case DELETE_OPERATION:
+          await this.fileOperator.deleteFile(this.navigator.workingDirectory, ...options);
+          break;
+
         case SYSTEM_INFO_OPERATION:
           await this.OSInspector.showInfo(...options);
           break;
 
         case HASH_CALCULATION_OPERATION:
-          await this.hashWorker.calculateHash(...options);
+          await this.hashWorker.calculateHash(this.navigator.workingDirectory, ...options);
           break;
 
         case COMPRESS_OPERATION:
-          await this.zipWorker.compress(...options);
+          await this.zipWorker.compress(this.navigator.workingDirectory, ...options);
           break;
         case DECOMPRESS_OPERATION:
-          await this.zipWorker.decompress(...options);
+          await this.zipWorker.decompress(this.navigator.workingDirectory, ...options);
           break;
 
         case EXIT_OPERATION:
@@ -77,13 +104,10 @@ export class App {
           break;
 
         default:
-          // TODO: remove
-          Object.keys(_colors).forEach((key) => {
-            console[`log${key}`]('key: ', key);
-          });
+          this.logger.showError('Invalid Operation');
       }
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       if (err instanceof AppError) {
         this.logger.showError(`Operation failed [${err.code}]: ${err.message}`);
       } else {
@@ -92,53 +116,3 @@ export class App {
     }
   }
 }
-
-/**
- * 1. start and finish program
- * 2. work with directories
- * 3. error handler
- * 4. invalid input handler
- * 5. up, cd, ls, cat, add, rn, cp, mv, rm
- * 6. os work
- * 7. hash
- * 8. compress/decompress
- */
-// TODO: remove
-// ==========
-const _colors = {
-  Reset: '\x1b[0m',
-  Bright: '\x1b[1m',
-  Dim: '\x1b[2m',
-  Underscore: '\x1b[4m',
-  Blink: '\x1b[5m',
-  Reverse: '\x1b[7m',
-  Hidden: '\x1b[8m',
-
-  FgBlack: '\x1b[30m',
-  FgRed: '\x1b[31m',
-  FgGreen: '\x1b[32m',
-  FgYellow: '\x1b[33m',
-  FgBlue: '\x1b[34m',
-  FgMagenta: '\x1b[35m',
-  FgCyan: '\x1b[36m',
-  FgWhite: '\x1b[37m',
-
-  BgBlack: '\x1b[40m',
-  BgRed: '\x1b[41m',
-  BgGreen: '\x1b[42m',
-  BgYellow: '\x1b[43m',
-  BgBlue: '\x1b[44m',
-  BgMagenta: '\x1b[45m',
-  BgCyan: '\x1b[46m',
-  BgWhite: '\x1b[47m',
-};
-
-const enableColorLogging = function () {
-  Object.keys(_colors).forEach((key) => {
-    console[`log${key}`] = function () {
-      return console.log(_colors[key], ...arguments, _colors.Reset);
-    };
-  });
-};
-
-enableColorLogging();

@@ -2,7 +2,7 @@ import {
   UP_OPERATION,
   CHANGE_DIRECTORY_OPERATION,
   LIST_OPERATION,
-  PRINT_OPERATION,
+  READ_OPERATION,
   CREATE_OPERATION,
   RENAME_OPERATION,
   COPY_OPERATION,
@@ -40,7 +40,7 @@ export class Parser {
 
     // File operations
     if (data.startsWith('cat ')) {
-      return { operation: PRINT_OPERATION, options };
+      return { operation: READ_OPERATION, options };
     }
     if (data.startsWith('add ')) {
       return { operation: CREATE_OPERATION, options };
